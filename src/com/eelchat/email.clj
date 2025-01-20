@@ -10,13 +10,13 @@
   {:to [{:email to}]
    :subject "Join the eelchat waitlist"
    :html (rum/render-static-markup
-          [:html
-           [:body
-            [:p "We received a request to join " settings/app-name
-             " using this email address. Click this link to join:"]
-            [:p [:a {:href url :target "_blank"} "Join the eelchat waitlist"]]
-            [:p "This link will expire in one hour. "
-             "If you did not request this link, you can ignore this email."]]])
+           [:html
+            [:body
+             [:p "We received a request to join " settings/app-name
+              " using this email address. Click this link to join:"]
+             [:p [:a {:href url :target "_blank"} "Join the eelchat waitlist"]]
+             [:p "This link will expire in one hour. "
+              "If you did not request this link, you can ignore this email."]]])
    :text (str "We received a request to join " settings/app-name
               " using this email address. Click this link to join the waitlist:\n"
               "\n"
@@ -32,14 +32,14 @@
     {:to [{:email to}]
      :subject subject
      :html (rum/render-static-markup
-            [:html
-             [:body
-              [:p "We received a request to " action " to " settings/app-name
-               " using this email address. Enter the following code to " action ":"]
-              [:p {:style {:font-size "2rem"}} code]
-              [:p
-               "This code will expire in three minutes. "
-               "If you did not request this code, you can ignore this email."]]])
+             [:html
+              [:body
+               [:p "We received a request to " action " to " settings/app-name
+                " using this email address. Enter the following code to " action ":"]
+               [:p {:style {:font-size "2rem"}} code]
+               [:p
+                "This code will expire in three minutes. "
+                "If you did not request this code, you can ignore this email."]]])
      :text (str "We received a request to " action " to " settings/app-name
                 " using this email address. Enter the following code to " action ":\n"
                 "\n"
