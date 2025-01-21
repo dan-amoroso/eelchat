@@ -1,8 +1,10 @@
 (ns repl
-  (:require [com.eelchat :as main]
-            [com.biffweb :as biff :refer [q]]
-            [clojure.edn :as edn]
-            [clojure.java.io :as io]))
+  (:require
+    [clojure.edn :as edn]
+    [clojure.java.io :as io]
+    [com.biffweb :as biff :refer [q]]
+    [com.eelchat :as main]))
+
 
 ;; REPL-driven development
 ;; ----------------------------------------------------------------------------------------
@@ -24,16 +26,21 @@
 ;; This function should only be used from the REPL. Regular application code
 ;; should receive the system map from the parent Biff component. For example,
 ;; the use-jetty component merges the system map into incoming Ring requests.
-(defn get-context []
+(defn get-context
+  []
   (biff/merge-context @main/system))
 
-(defn add-fixtures []
-  (biff/submit-tx (get-context)
-    (-> (io/resource "fixtures.edn")
-        slurp
-        edn/read-string)))
 
-(defn check-config []
+(defn add-fixtures
+  []
+  (biff/submit-tx (get-context)
+                  (-> (io/resource "fixtures.edn")
+                      slurp
+                      edn/read-string)))
+
+
+(defn check-config
+  []
   (let [prod-config (biff/use-aero-config {:biff.config/profile "prod"})
         dev-config  (biff/use-aero-config {:biff.config/profile "dev"})
         ;; Add keys for any other secrets you've added to resources/config.edn
@@ -41,7 +48,7 @@
                      :biff/jwt-secret
                      :mailersend/api-key
                      :recaptcha/secret-key
-                     ; ...
+                     ;; ...
                      ]
         get-secrets (fn [{:keys [biff/secret] :as config}]
                       (into {}
@@ -52,6 +59,7 @@
      :dev-config dev-config
      :prod-secrets (get-secrets prod-config)
      :dev-secrets (get-secrets dev-config)}))
+
 
 (comment
   ;; Call this function if you make a change to main/initial-system,
@@ -74,10 +82,10 @@
   (let [{:keys [biff/db] :as ctx} (get-context)
         user-id (biff/lookup-id db :user/email "hello@example.com")]
     (biff/submit-tx ctx
-      [{:db/doc-type :user
-        :xt/id user-id
-        :db/op :update
-        :user/email "new.address@example.com"}]))
+                    [{:db/doc-type :user
+                      :xt/id user-id
+                      :db/op :update
+                      :user/email "new.address@example.com"}]))
 
   (sort (keys (get-context)))
 

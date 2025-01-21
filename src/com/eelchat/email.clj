@@ -1,12 +1,15 @@
 (ns com.eelchat.email
-  (:require [camel-snake-kebab.core :as csk]
-            [camel-snake-kebab.extras :as cske]
-            [clj-http.client :as http]
-            [com.eelchat.settings :as settings]
-            [clojure.tools.logging :as log]
-            [rum.core :as rum]))
+  (:require
+    [camel-snake-kebab.core :as csk]
+    [camel-snake-kebab.extras :as cske]
+    [clj-http.client :as http]
+    [clojure.tools.logging :as log]
+    [com.eelchat.settings :as settings]
+    [rum.core :as rum]))
 
-(defn signin-link [{:keys [to url user-exists]}]
+
+(defn signin-link
+  [{:keys [to url user-exists]}]
   {:to [{:email to}]
    :subject "Join the eelchat waitlist"
    :html (rum/render-static-markup
@@ -25,7 +28,9 @@
               "This link will expire in one hour. If you did not request this link, "
               "you can ignore this email.")})
 
-(defn signin-code [{:keys [to code user-exists]}]
+
+(defn signin-code
+  [{:keys [to code user-exists]}]
   (let [[subject action] (if user-exists
                            [(str "Sign in to " settings/app-name) "sign in"]
                            [(str "Sign up for " settings/app-name) "sign up"])]
@@ -48,13 +53,17 @@
                 "This code will expire in three minutes. If you did not request this code, "
                 "you can ignore this email.")}))
 
-(defn template [k opts]
+
+(defn template
+  [k opts]
   ((case k
      :signin-link signin-link
      :signin-code signin-code)
    opts))
 
-(defn send-mailersend [{:keys [biff/secret mailersend/from mailersend/reply-to]} form-params]
+
+(defn send-mailersend
+  [{:keys [biff/secret mailersend/from mailersend/reply-to]} form-params]
   (let [result (http/post "https://api.mailersend.com/v1/email"
                           {:oauth-token (secret :mailersend/api-key)
                            :content-type :json
@@ -68,7 +77,9 @@
       (log/error (:body result)))
     success))
 
-(defn send-console [ctx form-params]
+
+(defn send-console
+  [ctx form-params]
   (println "TO:" (:to form-params))
   (println "SUBJECT:" (:subject form-params))
   (println)
@@ -78,7 +89,9 @@
            "API keys for MailerSend and Recaptcha to config.env.")
   true)
 
-(defn send-email [{:keys [biff/secret recaptcha/site-key] :as ctx} opts]
+
+(defn send-email
+  [{:keys [biff/secret recaptcha/site-key] :as ctx} opts]
   (let [form-params (if-some [template-key (:template opts)]
                       (template template-key opts)
                       opts)]

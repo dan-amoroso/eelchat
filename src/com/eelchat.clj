@@ -1,18 +1,20 @@
 (ns com.eelchat
-  (:require [com.biffweb :as biff]
-            [com.eelchat.email :as email]
-            [com.eelchat.app :as app]
-            [com.eelchat.home :as home]
-            [com.eelchat.middleware :as mid]
-            [com.eelchat.ui :as ui]
-            [com.eelchat.schema :as schema]
-            [clojure.test :as test]
-            [clojure.tools.logging :as log]
-            [clojure.tools.namespace.repl :as tn-repl]
-            [malli.core :as malc]
-            [malli.registry :as malr]
-            [nrepl.cmdline :as nrepl-cmd])
-  (:gen-class))
+  (:gen-class)
+  (:require
+    [clojure.test :as test]
+    [clojure.tools.logging :as log]
+    [clojure.tools.namespace.repl :as tn-repl]
+    [com.biffweb :as biff]
+    [com.eelchat.app :as app]
+    [com.eelchat.email :as email]
+    [com.eelchat.home :as home]
+    [com.eelchat.middleware :as mid]
+    [com.eelchat.schema :as schema]
+    [com.eelchat.ui :as ui]
+    [malli.core :as malc]
+    [malli.registry :as malr]
+    [nrepl.cmdline :as nrepl-cmd]))
+
 
 (def modules
   [app/module
@@ -20,32 +22,43 @@
    home/module
    schema/module])
 
-(def routes [["" {:middleware [mid/wrap-site-defaults]}
-              (keep :routes modules)]
-             ["" {:middleware [mid/wrap-api-defaults]}
-              (keep :api-routes modules)]])
 
-(def handler (-> (biff/reitit-handler {:routes routes})
-                 mid/wrap-base-defaults))
+(def routes
+  [["" {:middleware [mid/wrap-site-defaults]}
+    (keep :routes modules)]
+   ["" {:middleware [mid/wrap-api-defaults]}
+    (keep :api-routes modules)]])
+
+
+(def handler
+  (-> (biff/reitit-handler {:routes routes})
+      mid/wrap-base-defaults))
+
 
 (def static-pages (apply biff/safe-merge (map :static modules)))
 
-(defn generate-assets! [ctx]
+
+(defn generate-assets!
+  [ctx]
   (biff/export-rum static-pages "target/resources/public")
   (biff/delete-old-files {:dir "target/resources/public"
                           :exts [".html"]}))
 
-(defn on-save [ctx]
+
+(defn on-save
+  [ctx]
   (biff/add-libs)
   (biff/eval-files! ctx)
   (generate-assets! ctx)
   (biff/catchall (require 'com.eelchat-test))
   (test/run-all-tests #"com.eelchat.*-test"))
 
+
 (def malli-opts
   {:registry (malr/composite-registry
-              malc/default-registry
-              (apply biff/safe-merge (keep :schema modules)))})
+               malc/default-registry
+               (apply biff/safe-merge (keep :schema modules)))})
+
 
 (def initial-system
   {:biff/modules #'modules
@@ -57,7 +70,9 @@
    :biff.xtdb/tx-fns biff/tx-fns
    :com.eelchat/chat-clients (atom #{})})
 
+
 (defonce system (atom {}))
+
 
 (def components
   [biff/use-aero-config
@@ -69,7 +84,9 @@
    biff/use-chime
    biff/use-beholder])
 
-(defn start []
+
+(defn start
+  []
   (let [new-system (reduce (fn [system component]
                              (log/info "starting:" (str component))
                              (component system))
@@ -81,11 +98,15 @@
     (log/info "Go to" (:biff/base-url new-system))
     new-system))
 
-(defn -main []
+
+(defn -main
+  []
   (let [{:keys [biff.nrepl/args]} (start)]
     (apply nrepl-cmd/-main args)))
 
-(defn refresh []
+
+(defn refresh
+  []
   (doseq [f (:biff/stop @system)]
     (log/info "stopping:" (str f))
     (f))
