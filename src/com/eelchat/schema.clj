@@ -1,5 +1,6 @@
 (ns com.eelchat.schema)
 
+
 (def schema
   {:user/id :uuid
    :user [:map {:closed true}
@@ -32,6 +33,7 @@
              [:message/text       :string]
              [:message/channel    :channel/id]
              [:message/created-at inst?]]})
+
 
 (def module
   {:schema schema})

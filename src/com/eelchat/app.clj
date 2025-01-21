@@ -19,10 +19,38 @@
           "Sign out"])
        "."]
       [:.h-6]
-      [:div "Thanks for joining the waitlist."
-       " We'll let you know when eelchat is ready to use"])))
+      (biff/form
+        {:action "/community"}
+        [:button.btn {:type "submit"} "New Community"]))))
+
+
+(defn new-community
+  [{:keys [session] :as ctx}]
+  (let [community-id (random-uuid)]
+    (biff/submit-tx ctx
+                    [{:db/doc-type :community
+                      :xt/id community-id
+                      :community/title (str "Community #" (rand-int 1000))}
+                     {:db/doc-type :membership
+                      :membership/user (:uid session)
+                      :membership/community community-id
+                      :membership/roles #{:admin}}])
+    {:status 303
+     :headers {"Location" (str "/community/" community-id)}}))
+
+
+(defn community
+  [{:keys [biff/db path-params] :as ctx}]
+  (if-some [community (xt/entity db (parse-uuid (:id path-params)))]
+    (ui/page
+      {}
+      [:p "Welcome to " (:community/title community)])
+    {:status 303
+     :headers {"Location" "/app"}}))
 
 
 (def module
-  {:routes ["/app" {:middleware [mid/wrap-signed-in]}
-            ["" {:get app}]]})
+  {:routes ["" {:middleware [mid/wrap-signed-in]}
+            ["/app" {:get app}]
+            ["/community" {:post new-community}]
+            ["/community/:id" {:get community}]]})
