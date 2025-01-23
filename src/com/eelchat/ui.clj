@@ -2,6 +2,7 @@
   (:require
     [cheshire.core :as cheshire]
     [clojure.java.io :as io]
+    [clojure.string :as str]
     [com.biffweb :as biff]
     [com.eelchat.settings :as settings]
     [ring.middleware.anti-forgery :as csrf]
@@ -73,6 +74,41 @@
      [:.flex-grow]]))
 
 
+(defn app-page
+  [{:keys [uri user] :as ctx} & body]
+  (base
+    ctx
+    [:.flex.bg-orange-50
+     [:.h-screen.w-80.p-3.pr-0.flex.flex-col.flex-grow
+      [:select
+       {:class '[text-sm
+                 cursor-pointer
+                 focus:border-teal-600
+                 focus:ring-teal-600]
+        :onchange "window.location = this.value"}
+       [:option {:value "/app"}
+        "Select a community"]
+       (for [{:keys [membership/community]} (:user/memberships user)
+             :let [url (str "/community/" (:xt/id community))]]
+         [:option.cursor-pointer
+          {:value url
+           :selected (str/starts-with? uri url)}
+          (:community/title community)])]
+      [:.grow]
+      (biff/form
+        {:action "/community"}
+        [:button.btn.w-full {:type "submit"} "New Commuity"])
+      [:.h-3]
+      [:.text-sm (:user/email user) " | "
+       (biff/form
+         {:action "/auth/signout"
+          :class "inline"}
+         [:button.text-teal-600.hover:text-teal-800 {:type "submit"}
+          "Sign out"])]]
+     [:.h-screen.w-full.p-3.flex.flex-col
+      body]]))
+
+
 (defn on-error
   [{:keys [status ex] :as ctx}]
   {:status status
@@ -83,4 +119,4 @@
              [:h1.text-lg.font-bold
               (if (= status 404)
                 "Page not found."
-                "Something went wrong.")]))})
+                (do (biff/pprint ex) "Something went wrong."))]))})

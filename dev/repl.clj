@@ -47,9 +47,9 @@
         secret-keys [:biff.middleware/cookie-secret
                      :biff/jwt-secret
                      :mailersend/api-key
-                     :recaptcha/secret-key
-                     ;; ...
-                     ]
+                     :recaptcha/secret-key]
+        ;; ...
+
         get-secrets (fn [{:keys [biff/secret] :as config}]
                       (into {}
                             (map (fn [k]
@@ -71,6 +71,12 @@
   ;; database by running `rm -r storage/xtdb` (DON'T run that in prod),
   ;; restarting your app, and calling add-fixtures again.
   (add-fixtures)
+
+  (let [{:keys [biff/db] :as ctx} (get-context)
+        user-email "dan.j.amoroso@gmail.com"]
+    (q db '{:find (pull membership [*])
+            :where [[user :user/email user-email]
+                    [membership :membership/user]]}))
 
   ;; Query the database
   (let [{:keys [biff/db] :as ctx} (get-context)]
